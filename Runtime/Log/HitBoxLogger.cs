@@ -1,9 +1,26 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Log
 {
-    public class HitBoxLoggerCore
+    public class HitBoxLogger
     {
+        static HitBoxLogger instance;
+
+        public static HitBoxLogger Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    instance = new HitBoxLogger();
+                }
+
+                return instance;
+            }
+        }
+
         public readonly List<KeyValuePair<string, HitBoxLifeEnding>> HitBoxersEndings = new List<KeyValuePair<string, HitBoxLifeEnding>>();
         public readonly IDictionary<string, int> untouchedtimes = new Dictionary<string, int>();
         public readonly IDictionary<string, int> touchedtimes = new Dictionary<string, int>();
@@ -12,6 +29,17 @@ namespace Log
         public void AddLog(string stakeKey, HitBoxLifeEnding hitBoxLifeEnding)
         {
             HitBoxersEndings.Add(new KeyValuePair<string, HitBoxLifeEnding>(stakeKey, hitBoxLifeEnding));
+        }
+
+        public static string LoadOrCreateLogFile(string path, Action createFile)
+        {
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+
+            createFile?.Invoke();
+            return File.ReadAllText(path);
         }
 
         public void Clear()
