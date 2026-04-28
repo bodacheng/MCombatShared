@@ -1,13 +1,13 @@
 {
-  "name": "MCombat.Shared",
-  "rootNamespace": "MCombat.Shared",
+  "name": "MCombat.Shared.Editor",
+  "rootNamespace": "MCombat.Shared.Editor",
   "references": [
-    "UniRx",
-    "UniTask",
-    "Unity.Addressables",
-    "Unity.ResourceManager"
+    "MCombat.Shared",
+    "Unity.Addressables.Editor"
   ],
-  "includePlatforms": [],
+  "includePlatforms": [
+    "Editor"
+  ],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
   "overrideReferences": false,
