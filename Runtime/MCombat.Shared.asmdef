@@ -1,7 +1,9 @@
 {
   "name": "MCombat.Shared",
   "rootNamespace": "MCombat.Shared",
-  "references": [],
+  "references": [
+    "UniRx"
+  ],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
