@@ -3,6 +3,13 @@ using System.Collections.Generic;
 
 namespace MCombat.Shared.CombatGroup
 {
+    public interface IGroupUnitCountEntry
+    {
+        string Id { get; }
+        int Count { get; set; }
+        int OriginCount { get; set; }
+    }
+
     public static class GroupUnitCountUtility
     {
         public static List<string> GetNonZeroIds<TEntry>(IEnumerable<TEntry> entries)

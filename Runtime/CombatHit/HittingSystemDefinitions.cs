@@ -1,5 +1,36 @@
-﻿namespace HittingDetection
+﻿using UnityEngine;
+
+public enum Element
 {
+    darkMagic = 1,
+    lightMagic = 2,
+    redMagic = 3,
+    blueMagic = 4,
+    greenMagic = 5,
+    Null = 0
+}
+
+namespace Log
+{
+    public enum HitBoxLifeEnding
+    {
+        untouched = 1,
+        touched = 2,
+        successed = 3
+    }
+}
+
+namespace HittingDetection
+{
+    public class HitPointPara
+    {
+        public Vector3 onBodyPos;
+        public Vector3 impactPos;
+        public Quaternion qua;
+        public float WeaponHpCost;
+        public bool exhaustEffect;
+    }
+
     // 枚举所对应的数字与SetThisWeaponDamageTypeByNum参数值没必要存在对应关系
     public enum DamageType
     {
