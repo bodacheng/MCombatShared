@@ -15,17 +15,25 @@ public static class RandomSelect
 {
     public static List<int> Get(int rangeMin, int rangeMax, int selectCount)
     {
-        var target = new List<int>();
-        while (target.Count != selectCount)
+        if (selectCount <= 0 || rangeMax < rangeMin)
         {
-            var one = Random.Range(rangeMin, rangeMax + 1);
-            if (!target.Contains(one))
-            {
-                target.Add(one);
-            }
+            return new List<int>();
         }
 
-        return target;
+        var targetCount = Mathf.Min(selectCount, rangeMax - rangeMin + 1);
+        var candidates = new List<int>(rangeMax - rangeMin + 1);
+        for (var value = rangeMin; value <= rangeMax; value++)
+        {
+            candidates.Add(value);
+        }
+
+        for (var i = 0; i < targetCount; i++)
+        {
+            var swapIndex = Random.Range(i, candidates.Count);
+            (candidates[i], candidates[swapIndex]) = (candidates[swapIndex], candidates[i]);
+        }
+
+        return candidates.GetRange(0, targetCount);
     }
 }
 

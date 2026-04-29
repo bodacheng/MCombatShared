@@ -15,13 +15,11 @@ public class LerpToCertainDistance : CameraModeCore
 
     public override void LocalUpdate(UnityEngine.Camera camera)
     {
-        targetCenter = Vector3.zero;
-        for (var i = 0; i < targets.Count; i++)
+        if (camera == null || !TryGetAveragePosition(targets, out targetCenter))
         {
-            targetCenter += targets[i].position;
+            return;
         }
 
-        targetCenter /= targets.Count;
         camera.transform.position = Vector3.Distance(targetCenter, camera.transform.position) > distanceFromTarget
             ? Vector3.Lerp(camera.transform.position, targetCenter, speed * Time.deltaTime)
             : Vector3.Lerp(camera.transform.position, (camera.transform.position - targetCenter) + camera.transform.position, speed * Time.deltaTime);
@@ -43,23 +41,30 @@ public class WatchOverCamera : CameraModeCore
 
     public override void LocalUpdate(UnityEngine.Camera camera)
     {
-        if (targets == null || targets.Count == 0)
+        if (camera == null || targets == null || targets.Count == 0)
         {
             return;
         }
 
         center = Vector3.zero;
         direction = Vector3.zero;
+        var validCount = 0;
         foreach (var oneTarget in targets)
         {
             if (oneTarget != null)
             {
                 center += oneTarget.transform.position;
                 direction += oneTarget.transform.forward;
+                validCount++;
             }
         }
 
-        center /= targets.Count;
+        if (validCount == 0)
+        {
+            return;
+        }
+
+        center /= validCount;
         direction = Quaternion.AngleAxis(XZrosOffset, Vector3.up) * direction;
         var to = center + direction.normalized * XZDis + new Vector3(0, YDis, 0);
         camera.transform.position = Vector3.Lerp(camera.transform.position, to, speed * Time.deltaTime);
@@ -89,21 +94,11 @@ public class GodplayerCamera : CameraModeCore
 
     public override void LocalUpdate(UnityEngine.Camera camera)
     {
-        if (targets == null || targets.Count == 0)
+        if (camera == null || !TryGetAveragePosition(targets, out center))
         {
             return;
         }
 
-        center = Vector3.zero;
-        foreach (var oneTarget in targets)
-        {
-            if (oneTarget != null)
-            {
-                center += oneTarget.transform.position;
-            }
-        }
-
-        center /= targets.Count;
         speed = 1f;
         if (Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.OSXEditor ||
             Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.OSXPlayer)
@@ -189,21 +184,11 @@ public class GodPlayerCertainY : CameraModeCore
 
     public override void LocalUpdate(UnityEngine.Camera camera)
     {
-        if (targets == null || targets.Count == 0)
+        if (camera == null || !TryGetAveragePosition(targets, out center))
         {
             return;
         }
 
-        center = Vector3.zero;
-        foreach (var oneTarget in targets)
-        {
-            if (oneTarget != null)
-            {
-                center += oneTarget.transform.position;
-            }
-        }
-
-        center /= targets.Count;
         xi = center - Vector3.forward * XZDis;
         xi.y = YDis;
         toRotation = Quaternion.LookRotation(center - xi);
@@ -231,20 +216,15 @@ public class ScreenSaverC : CameraModeCore
 
     public override void LocalUpdate(UnityEngine.Camera camera)
     {
+        if (camera == null || meCenter == null)
+        {
+            return;
+        }
+
         if (auto)
         {
-            if (targets != null && targets.Count > 0)
+            if (TryGetAveragePosition(targets, out enemiesCenter))
             {
-                enemiesCenter = Vector3.zero;
-                foreach (var oneTarget in targets)
-                {
-                    if (oneTarget != null)
-                    {
-                        enemiesCenter += oneTarget.transform.position;
-                    }
-                }
-
-                enemiesCenter /= targets.Count;
                 enemiesCenter.y = 0;
                 enemyScreenPos = camera.WorldToViewportPoint(enemiesCenter);
                 meScreenPos = camera.WorldToViewportPoint(meCenter.position);

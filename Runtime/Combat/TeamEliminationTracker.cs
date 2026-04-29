@@ -6,16 +6,18 @@ namespace MCombat.Shared.Combat
     public sealed class TeamEliminationTracker<TUnit>
         where TUnit : class
     {
+        readonly List<Team> _registeredTeams = new List<Team>();
         readonly Dictionary<Team, string> _teamIds = new Dictionary<Team, string>();
         readonly Dictionary<Team, int> _teamUnitCounts = new Dictionary<Team, int>();
         readonly Dictionary<Team, HashSet<TUnit>> _deadUnitsByTeam = new Dictionary<Team, HashSet<TUnit>>();
-        readonly List<Team> _deadTeams = new List<Team>();
+        readonly HashSet<Team> _deadTeams = new HashSet<Team>();
 
         public Team WinnerTeam { get; private set; } = Team.none;
         public bool IsGameOver { get; private set; }
 
         public void Clear()
         {
+            _registeredTeams.Clear();
             _teamIds.Clear();
             _teamUnitCounts.Clear();
             _deadUnitsByTeam.Clear();
@@ -26,6 +28,11 @@ namespace MCombat.Shared.Combat
 
         public void RegisterTeam(Team team, string id, int unitCount)
         {
+            if (!_teamUnitCounts.ContainsKey(team))
+            {
+                _registeredTeams.Add(team);
+            }
+
             _teamIds[team] = id;
             _teamUnitCounts[team] = unitCount;
             if (!_deadUnitsByTeam.ContainsKey(team))
@@ -54,8 +61,7 @@ namespace MCombat.Shared.Combat
 
             if (_teamUnitCounts.TryGetValue(team, out var unitCount)
                 && unitCount > 0
-                && deadUnits.Count >= unitCount
-                && !_deadTeams.Contains(team))
+                && deadUnits.Count >= unitCount)
             {
                 _deadTeams.Add(team);
             }
@@ -63,7 +69,7 @@ namespace MCombat.Shared.Combat
             if (!IsGameOver && _teamUnitCounts.Count > 0 && _teamUnitCounts.Count <= _deadTeams.Count + 1)
             {
                 IsGameOver = true;
-                var winner = _teamUnitCounts.Keys.Except(_deadTeams).ToList();
+                var winner = _registeredTeams.Except(_deadTeams).ToList();
                 WinnerTeam = winner.Count > 0 ? winner[0] : Team.none;
             }
         }
