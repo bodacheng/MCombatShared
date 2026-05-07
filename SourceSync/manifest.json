@@ -1,0 +1,66 @@
+{
+  "roots": [
+    {
+      "path": "Behaviour",
+      "exclude": [
+        "BtnUI/MobileInputsManager.cs"
+      ]
+    },
+    {
+      "path": "P3"
+    },
+    {
+      "path": "Structure/SingleThreadProcesser"
+    },
+    {
+      "path": "Camera"
+    },
+    {
+      "path": "TheNineSlot"
+    },
+    {
+      "path": "SkillStoneBox"
+    },
+    {
+      "path": "SimpleDragAndDrop/Scripts"
+    },
+    {
+      "path": "Remote/Stone"
+    },
+    {
+      "path": "UnitBox",
+      "exclude": [
+        "UnitFilter.cs",
+        "SSLevelUpManager/Execution.cs",
+        "SSLevelUpManager/UpdateAll.cs",
+        "SSLevelUpManager/SSLevelUpManager.Project.cs"
+      ]
+    }
+  ],
+  "files": [
+    "DummyLayerSystem/LayerDefine/StoneListLayer.cs",
+    "DummyLayerSystem/LayerDefine/StoneUpdatesConfirm.cs",
+    "DummyLayerSystem/LayerDefine/Shop/StoneContentCell.cs",
+    "DummyLayerSystem/LayerDefine/FrontLayer/StoneBtnEffect.cs"
+  ],
+  "obsolete": [
+    "Behaviour/Soul/BehaviorRunner_unused.cs",
+    "Behaviour/Soul/BehaviorRunner_unused.cs.meta",
+    "Behaviour/Soul/BehaviorRunner_EditorData.cs",
+    "Behaviour/Soul/BehaviorRunner_EditorData.cs.meta",
+    "Behaviour/Soul/Sensor/Sensor_Get.cs",
+    "Behaviour/Soul/Sensor/Sensor_Get.cs.meta",
+    "Behaviour/GUI/SkillOptions.cs",
+    "Behaviour/GUI/SkillOptions.cs.meta",
+    "Behaviour/Soul/SkillSet/SkillSet_Validation.cs",
+    "Behaviour/Soul/SkillSet/SkillSet_Validation.cs.meta",
+    "Behaviour/Soul/BehaviorRunner_Form.cs",
+    "Behaviour/Soul/BehaviorRunner_Form.cs.meta",
+    "Behaviour/Soul/SkillSet/SkillSet_Tools.cs",
+    "Behaviour/Soul/SkillSet/SkillSet_Tools.cs.meta",
+    "Behaviour/Soul/SkillSet/RandomSet/RandomSkillSet.cs",
+    "Behaviour/Soul/SkillSet/RandomSet/RandomSkillSet.cs.meta",
+    "Camera/Modes/GangV.cs",
+    "Camera/Modes/GangV.cs.meta"
+  ]
+}

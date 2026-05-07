@@ -1,9 +1,11 @@
 # SourceSync
 
-`SourceSync` contains project-assembly source that must stay identical in MCombat and PocketStriker, but cannot live under `Runtime` because it depends on project-local types such as `Soul.Behavior`.
+`SourceSync` contains project-assembly assets that must stay identical in MCombat and PocketStriker, but cannot live under `Runtime` because they depend on project-local types such as `Soul.Behavior` or scene/prefab references.
 
-Run `sync-to-projects.sh` after editing these files. The script copies the shared `Behaviour` tree into both projects and refreshes the embedded `com.mcombat.shared` packages while excluding `SourceSync` from Unity package import.
+Run `sync-to-projects.sh` after editing these files. The script copies the shared `Behaviour`, `P3`, `Camera`, `TheNineSlot`, `SkillStoneBox`, `SimpleDragAndDrop/Scripts`, `Remote/Stone`, `UnitBox`, and `Structure/SingleThreadProcesser` trees plus selected layer files into both projects and refreshes the embedded `com.mcombat.shared` packages while excluding `SourceSync` from Unity package import.
 
-`Behaviour/BtnUI/MobileInputsManager.cs` is intentionally not stored here because it is still project-specific. The sync script also preserves project-local `.meta` files so MonoBehaviour GUIDs and execution-order settings do not drift between existing Unity assets.
+`manifest.json` is the single source of truth for managed roots, single-file sync entries, per-root project-local exclusions, and obsolete project files to delete.
 
-Run `verify-source-sync.sh` to confirm that all non-excluded `Assets/Behaviour` source files match `SourceSync` and that embedded packages are in sync.
+`Behaviour/BtnUI/MobileInputsManager.cs`, `UnitBox/UnitFilter.cs`, `DummyLayerSystem/LayerDefine/StoneListLayer.Project.cs`, and the `UnitBox/SSLevelUpManager` execution/update-all project partials are intentionally project-specific. The sync script also preserves project-local `.meta` files so MonoBehaviour GUIDs and execution-order settings do not drift between existing Unity assets.
+
+Run `verify-source-sync.sh` to confirm that all non-excluded files under the managed asset roots match `SourceSync` and that embedded packages are in sync.

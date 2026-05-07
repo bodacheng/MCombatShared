@@ -8,42 +8,70 @@ pocket_project="${POCKET_PROJECT:-/Users/daisei/PocketStriker}"
 python3 - "$shared_root" "$mcombat_project" "$pocket_project" <<'PY'
 from pathlib import Path
 import filecmp
+import json
 import sys
 
 shared_root = Path(sys.argv[1])
 projects = [Path(p) for p in sys.argv[2:]]
-source_root = shared_root / "SourceSync" / "Behaviour"
-excluded = {"BtnUI/MobileInputsManager.cs"}
+manifest = json.loads((shared_root / "SourceSync" / "manifest.json").read_text())
 errors = []
 
-source_files = {
-    p.relative_to(source_root).as_posix(): p
-    for p in source_root.rglob("*.cs")
-}
+def is_managed_file(path):
+    return path.is_file() and path.suffix != ".meta" and path.name != ".DS_Store"
 
-for rel in excluded:
-    if rel in source_files:
-        errors.append(f"excluded file must stay project-local: {rel}")
+def is_excluded(rel, excluded):
+    return rel in excluded or any(rel.startswith(f"{item.rstrip('/')}/") for item in excluded)
 
-for project in projects:
-    behaviour_root = project / "Assets" / "Behaviour"
-    project_files = {
-        p.relative_to(behaviour_root).as_posix(): p
-        for p in behaviour_root.rglob("*.cs")
-        if p.relative_to(behaviour_root).as_posix() not in excluded
+def managed_files(root):
+    return {
+        p.relative_to(root).as_posix(): p
+        for p in root.rglob("*")
+        if is_managed_file(p)
     }
 
-    missing_from_source = sorted(set(project_files) - set(source_files))
-    for rel in missing_from_source:
-        errors.append(f"{project}: project Behaviour file is not SourceSync-managed: {rel}")
+for root in manifest["roots"]:
+    asset_root = root["path"]
+    excluded = set(root.get("exclude", ()))
+    source_root = shared_root / "SourceSync" / asset_root
+    source_files = managed_files(source_root)
 
-    for rel, src in source_files.items():
-        dst = behaviour_root / rel
+    for rel in excluded:
+        if rel in source_files:
+            errors.append(f"excluded file must stay project-local: {asset_root}/{rel}")
+
+    for project in projects:
+        project_root = project / "Assets" / asset_root
+        project_files = {
+            p.relative_to(project_root).as_posix(): p
+            for p in project_root.rglob("*")
+            if is_managed_file(p)
+            and not is_excluded(p.relative_to(project_root).as_posix(), excluded)
+        }
+
+        missing_from_source = sorted(set(project_files) - set(source_files))
+        for rel in missing_from_source:
+            errors.append(f"{project}: project {asset_root} file is not SourceSync-managed: {rel}")
+
+        for rel, src in source_files.items():
+            dst = project_root / rel
+            if not dst.exists():
+                errors.append(f"{project}: missing synced {asset_root} file: {rel}")
+            elif not filecmp.cmp(src, dst, shallow=False):
+                errors.append(f"{project}: synced {asset_root} file differs: {rel}")
+
+for rel in manifest["files"]:
+    src = shared_root / "SourceSync" / rel
+    if not src.exists():
+        errors.append(f"missing SourceSync file: {rel}")
+        continue
+    for project in projects:
+        dst = project / "Assets" / rel
         if not dst.exists():
             errors.append(f"{project}: missing synced file: {rel}")
         elif not filecmp.cmp(src, dst, shallow=False):
             errors.append(f"{project}: synced file differs: {rel}")
 
+for project in projects:
     if (project / "Packages" / "com.mcombat.shared" / "SourceSync").exists():
         errors.append(f"{project}: embedded package must not contain SourceSync")
 
@@ -53,7 +81,7 @@ if errors:
         print(f"  {error}")
     sys.exit(1)
 
-print("SourceSync Behaviour files match both projects.")
+print("SourceSync asset roots match both projects.")
 PY
 
 for project in "$mcombat_project" "$pocket_project"; do
