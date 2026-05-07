@@ -35,13 +35,54 @@
         "SSLevelUpManager/UpdateAll.cs",
         "SSLevelUpManager/SSLevelUpManager.Project.cs"
       ]
+    },
+    {
+      "path": "DummyLayerSystem/LayerDefine/FrontLayer"
+    },
+    {
+      "path": "MainSceneSystem/NAGARE/Processes/Mail"
+    },
+    {
+      "path": "MainSceneSystem/NAGARE/Processes/Shop"
+    },
+    {
+      "path": "Remote/API/Dto"
     }
   ],
   "files": [
+    "DummyLayerSystem/LayerDefine/ArenaAwardLayer.cs",
+    "DummyLayerSystem/LayerDefine/ArenaLayer.cs",
+    "DummyLayerSystem/LayerDefine/ArenaNewSeason.cs",
+    "DummyLayerSystem/LayerDefine/AskIfLinkDeviceLayer.cs",
+    "DummyLayerSystem/LayerDefine/BattleGroundSwitch.cs",
+    "DummyLayerSystem/LayerDefine/BuyNoAds.cs",
+    "DummyLayerSystem/LayerDefine/CountDownLayer.cs",
     "DummyLayerSystem/LayerDefine/StoneListLayer.cs",
     "DummyLayerSystem/LayerDefine/StoneUpdatesConfirm.cs",
     "DummyLayerSystem/LayerDefine/Shop/StoneContentCell.cs",
-    "DummyLayerSystem/LayerDefine/FrontLayer/StoneBtnEffect.cs"
+    "DummyLayerSystem/LayerDefine/EventBattle/EventBattleButton.cs",
+    "DummyLayerSystem/LayerDefine/FightOver/IconAndSKillShowUISet.cs",
+    "DummyLayerSystem/LayerDefine/Gotcha/GotchaLayer.cs",
+    "DummyLayerSystem/LayerDefine/Gotcha/GotchaResultLayer/GotchaResultLayer_Detail.cs",
+    "DummyLayerSystem/LayerDefine/ImageBg.cs",
+    "DummyLayerSystem/LayerDefine/InBattleEnvolve/EvolutionSkill.cs",
+    "DummyLayerSystem/LayerDefine/Mail/MailItemInstance.cs",
+    "DummyLayerSystem/LayerDefine/Mail/MailListView.cs",
+    "DummyLayerSystem/LayerDefine/MailDetailView.cs",
+    "DummyLayerSystem/LayerDefine/SkillEditLayer/SkillEditLayerTutorial.cs",
+    "DummyLayerSystem/LayerDefine/Tutorial/SkillEditTutorial12.cs",
+    "DummyLayerSystem/LayerDefine/Tutorial/TutorialLayerSpecialEvent.cs",
+    "MainSceneSystem/MainSceneLogger.cs",
+    "MainSceneSystem/NAGARE/ProcessesRunner.cs",
+    "MainSceneSystem/NAGARE/SceneProcess.cs",
+    "MainSceneSystem/NAGARE/Processes/PopupLayer/PopupLayer.cs",
+    "MainSceneSystem/NAGARE/Processes/RankingPage.cs",
+    "MainSceneSystem/NAGARE/Processes/Gacha/DropTableInfoDetail.cs",
+    "MainSceneSystem/NAGARE/Processes/Gacha/GotchaBtn.cs",
+    "MainSceneSystem/NAGARE/Processes/ArenaPage/ArenaPageLoading.cs",
+    "MainSceneSystem/NAGARE/Processes/ArenaPage/ArenaPageTimeCheck.cs",
+    "ImportantDefinition/Skill/AIDataBase.cs",
+    "ImportantDefinition/Skill/HitBoxLogTable.cs"
   ],
   "obsolete": [
     "Behaviour/Soul/BehaviorRunner_unused.cs",
@@ -61,6 +102,12 @@
     "Behaviour/Soul/SkillSet/RandomSet/RandomSkillSet.cs",
     "Behaviour/Soul/SkillSet/RandomSet/RandomSkillSet.cs.meta",
     "Camera/Modes/GangV.cs",
-    "Camera/Modes/GangV.cs.meta"
+    "Camera/Modes/GangV.cs.meta",
+    "MainSceneSystem/NAGARE/Processes/notusinganymore/JiNengRongLian_selectBaseMonster.cs",
+    "MainSceneSystem/NAGARE/Processes/notusinganymore/JiNengRongLian_selectBaseMonster.cs.meta",
+    "MainSceneSystem/NAGARE/Processes/notusinganymore/JiNengRongLian_selectMaterialMonster.cs",
+    "MainSceneSystem/NAGARE/Processes/notusinganymore/JiNengRongLian_selectMaterialMonster.cs.meta",
+    "MainSceneSystem/NAGARE/Processes/notusinganymore/JiNengRongLian_waitForConfirm.cs",
+    "MainSceneSystem/NAGARE/Processes/notusinganymore/JiNengRongLian_waitForConfirm.cs.meta"
   ]
 }

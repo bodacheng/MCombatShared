@@ -2,7 +2,7 @@
 
 `SourceSync` contains project-assembly assets that must stay identical in MCombat and PocketStriker, but cannot live under `Runtime` because they depend on project-local types such as `Soul.Behavior` or scene/prefab references.
 
-Run `sync-to-projects.sh` after editing these files. The script copies the shared `Behaviour`, `P3`, `Camera`, `TheNineSlot`, `SkillStoneBox`, `SimpleDragAndDrop/Scripts`, `Remote/Stone`, `UnitBox`, and `Structure/SingleThreadProcesser` trees plus selected layer files into both projects and refreshes the embedded `com.mcombat.shared` packages while excluding `SourceSync` from Unity package import.
+Run `sync-to-projects.sh` after editing these files. The script copies the shared `Behaviour`, `P3`, `Camera`, `TheNineSlot`, `SkillStoneBox`, `SimpleDragAndDrop/Scripts`, `Remote/Stone`, `Remote/API/Dto`, `UnitBox`, selected `MainSceneSystem` process roots, `DummyLayerSystem/LayerDefine/FrontLayer`, and `Structure/SingleThreadProcesser` trees plus selected reusable files into both projects and refreshes the embedded `com.mcombat.shared` packages while excluding `SourceSync` from Unity package import.
 
 `manifest.json` is the single source of truth for managed roots, single-file sync entries, per-root project-local exclusions, and obsolete project files to delete.
 
