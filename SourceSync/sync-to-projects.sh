@@ -18,8 +18,8 @@ manifest = json.loads((shared_root / "SourceSync" / "manifest.json").read_text()
 def rel_posix(path, root):
     return path.relative_to(root).as_posix()
 
-def is_global_excluded(path):
-    return path.name == ".DS_Store" or path.suffix == ".meta"
+def is_global_excluded(path, skip_meta=True):
+    return path.name == ".DS_Store" or (skip_meta and path.suffix == ".meta")
 
 def is_excluded(rel, excluded):
     return rel in excluded or any(rel.startswith(f"{item.rstrip('/')}/") for item in excluded)
@@ -34,14 +34,14 @@ def remove_path(path):
     else:
         path.unlink()
 
-def sync_tree(src_root, dst_root, excluded=(), preserve_excluded=True):
+def sync_tree(src_root, dst_root, excluded=(), preserve_excluded=True, skip_meta=True):
     excluded = set(excluded)
     src_files = set()
 
     dst_root.mkdir(parents=True, exist_ok=True)
     for src in src_root.rglob("*"):
         rel = rel_posix(src, src_root)
-        if is_excluded(rel, excluded) or is_global_excluded(src):
+        if is_excluded(rel, excluded) or is_global_excluded(src, skip_meta):
             continue
         dst = dst_root / rel
         if src.is_dir():
@@ -52,7 +52,7 @@ def sync_tree(src_root, dst_root, excluded=(), preserve_excluded=True):
 
     for dst in sorted(dst_root.rglob("*"), key=lambda p: len(p.parts), reverse=True):
         rel = rel_posix(dst, dst_root)
-        if is_global_excluded(dst):
+        if is_global_excluded(dst, skip_meta):
             continue
         if preserve_excluded and is_excluded(rel, excluded):
             continue
@@ -83,7 +83,7 @@ def sync_project(project):
             remove_path(path)
 
     package_dir = project / "Packages" / "com.mcombat.shared"
-    sync_tree(shared_root, package_dir, {".git"}, preserve_excluded=True)
+    sync_tree(shared_root, package_dir, {".git"}, preserve_excluded=True, skip_meta=False)
     package_source_sync = package_dir / "SourceSync"
     if package_source_sync.exists():
         remove_path(package_source_sync)
