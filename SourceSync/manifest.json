@@ -47,6 +47,52 @@
     },
     {
       "path": "Remote/API/Dto"
+    },
+    {
+      "path": "POS_Sys"
+    },
+    {
+      "path": "ResourceLoading"
+    },
+    {
+      "path": "EffectsSystem",
+      "exclude": [
+        "hjk.jpeg"
+      ]
+    },
+    {
+      "path": "BOWeaponSystem",
+      "exclude": [
+        "Decompositioner_Life.cs",
+        "Health System/AbstractShaderMesh.cs",
+        "Health System/FightAttriCalReference_CriticalGauge.cs",
+        "Health System/ResistanceManager.cs",
+        "Health System/ShaderManager.cs",
+        "Health System/CharacterShadow.shader",
+        "Weapon Marker Systems/BO_Marker.cs",
+        "Weapon Marker Systems/HitBoxesProcesser.cs"
+      ]
+    },
+    {
+      "path": "PlayFab",
+      "exclude": [
+        "SkillAnalyzer.prefab",
+        "Client/Item.cs",
+        "Client/LinkDevice.cs",
+        "Client/Login.cs",
+        "Client/UserData.cs"
+      ]
+    },
+    {
+      "path": "UI",
+      "exclude": [
+        ".idea",
+        "AutoSwitch.cs",
+        "ExBarBurn.cs",
+        "SideUnitIcon.cs",
+        "TimeLimitedBundleCell.cs",
+        "SizeAdjustBySpriteSize.cs"
+      ]
     }
   ],
   "files": [
