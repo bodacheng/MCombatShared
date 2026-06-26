@@ -151,20 +151,17 @@ namespace Soul
 
         public bool SuperComboStrategyCondition()
         {
+            const string dreamComboTriggerCondition = "TimeToAttack";
             var first = fixedSkillSequence.Count > 0 ? fixedSkillSequence[0] : null;
             if (first == null)
                 return false;
-            for (var y = 0; y < AllConditionCodes.Count; y++)
-            {
-                var _condition = AllConditionCodes[y];
-                if (ConditionAndRespond[_condition].Contains(first.REAL_NAME))
-                {
-                    BehaviourDic.TryGetValue(first.REAL_NAME, out var tryBehavior);
-                    if (tryBehavior.CheckTriggerCondition(_condition))
-                        return true;
-                }
-            }
-            return false;
+
+            if (!BehaviourDic.TryGetValue(first.REAL_NAME, out var firstBehavior))
+                return false;
+
+            return ConditionAndRespond.TryGetValue(dreamComboTriggerCondition, out var responses)
+                   && responses.Contains(first.REAL_NAME)
+                   && firstBehavior.CheckTriggerCondition(dreamComboTriggerCondition);
         }
 
         public Action sequenceBeginAct;
