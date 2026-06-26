@@ -1,11 +1,14 @@
 using UnityEngine;
+#if UNITY_EDITOR && ENABLE_PLAYFABADMIN_API
 using PlayFab;
 using PlayFab.AdminModels;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+#endif
 
 public class TitleData : MonoBehaviour
 {
+#if UNITY_EDITOR && ENABLE_PLAYFABADMIN_API
     public class ArcadeReward
     {
         public int g;
@@ -40,4 +43,12 @@ public class TitleData : MonoBehaviour
             );
         }
     }
+#else
+    public static void SetArcadeRewards()
+    {
+#if UNITY_EDITOR
+        Debug.LogWarning("PlayFab Admin API is disabled for this branch.");
+#endif
+    }
+#endif
 }

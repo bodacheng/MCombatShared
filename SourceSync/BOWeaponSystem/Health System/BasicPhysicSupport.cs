@@ -187,9 +187,10 @@ public class BasicPhysicSupport : MonoBehaviour
     {
         var hasRigidbody = Rigidbody != null;
         var velocity = hasRigidbody ? Rigidbody.linearVelocity : Vector3.zero;
+        var touchingEnemyBlocksRecovery = hiddenMethods.TouchingEnemy() && !hiddenMethods.HasSkillContactDragOverride;
         if (!BehaviorMotionUtility.ShouldApplyRootMotionRecovery(
                 HasActiveCoordinatedDisplacement(),
-                hiddenMethods.TouchingEnemy(),
+                touchingEnemyBlocksRecovery,
                 hasRigidbody,
                 velocity,
                 delta))
@@ -381,6 +382,7 @@ public class BasicPhysicSupport : MonoBehaviour
         }
 
         public int OverrideOnEnemyDrag = -1;
+        public bool HasSkillContactDragOverride => OverrideOnEnemyDrag >= 0;
 
         public bool Grounded => _BasicPhysicSupport._DATA_CENTER.WholeT.position.y <= floorY;
 
@@ -528,15 +530,27 @@ public class BasicPhysicSupport : MonoBehaviour
         {
             hiddenMethods.OverrideOnEnemyDrag = -1;
         }
+
+        ResetContactStabilizer();
     }
 
     public void SetOverrideOnEnemyDrag(AnimationEvent e)
     {
+        var previousOverride = hiddenMethods.OverrideOnEnemyDrag;
         hiddenMethods.OverrideOnEnemyDrag = e.intParameter;
+        if (previousOverride != hiddenMethods.OverrideOnEnemyDrag)
+        {
+            ResetContactStabilizer();
+        }
     }
 
     bool ShouldSkipEnemyContactCorrection()
     {
+        if (hiddenMethods.HasSkillContactDragOverride)
+        {
+            return true;
+        }
+
         return BehaviorMotionUtility.ShouldSkipContactCorrection(
             IsContactCorrectionBlocked(),
             _DATA_CENTER != null

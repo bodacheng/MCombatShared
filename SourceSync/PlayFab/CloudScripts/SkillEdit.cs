@@ -9,10 +9,10 @@ public partial class CloudScript
     // k v : stoneid , equipingMonster, slot
     public static void UpdateSkillEdit(IDictionary<string, Tuple<string, string>> toEditStones, Action<IDictionary<string, Tuple<string, string>>> success)
     {
-        var items = new List<PlayFab.ServerModels.UpdateUserInventoryItemDataRequest>();
+        var items = new List<CloudScriptUpdateUserInventoryItemDataRequest>();
         foreach (var pair in toEditStones)
         {
-            var itemUpdate = new PlayFab.ServerModels.UpdateUserInventoryItemDataRequest
+            var itemUpdate = new CloudScriptUpdateUserInventoryItemDataRequest
             {
                 //PlayFabId = AccountSet._AccInfo.playerID,
                 ItemInstanceId = pair.Key,

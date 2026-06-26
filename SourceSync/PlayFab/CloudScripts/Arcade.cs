@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using DummyLayerSystem;
 using Newtonsoft.Json;
-using PlayFab.ServerModels;
 using UnityEngine;
 using ExecuteCloudScriptResult = PlayFab.ClientModels.ExecuteCloudScriptResult;
 
@@ -55,7 +54,7 @@ public partial class CloudScript
                     {
                         try
                         {
-                            var unitAward = JsonConvert.DeserializeObject<List<GrantedItemInstance>>(award_unit.ToString());
+                            var unitAward = JsonConvert.DeserializeObject<List<CloudScriptGrantedItemInstance>>(award_unit.ToString());
                             foreach (var item in unitAward)
                             {
                                 var unitConfig = Units.GetUnitConfig(item.ItemId);

@@ -8,7 +8,7 @@ public partial class CloudScript
 {
     public static void UpdateStone(SkillStoneLevelUpForm form, Action<string, List<string>> success)
     {
-        var Items = new List<PlayFab.AdminModels.RevokeInventoryItem>();
+        var Items = new List<CloudScriptRevokeInventoryItem>();
         var itemInstanceIds = new List<string>();
         if (form.stoneInstances.Count < 4)
         {
@@ -18,7 +18,7 @@ public partial class CloudScript
         
         foreach (var stoneInstanceId in form.stoneInstances)
         {
-            var resource = new PlayFab.AdminModels.RevokeInventoryItem()
+            var resource = new CloudScriptRevokeInventoryItem()
             {
                 ItemInstanceId = stoneInstanceId,
                 PlayFabId = PlayerAccountInfo.Me.PlayFabId
