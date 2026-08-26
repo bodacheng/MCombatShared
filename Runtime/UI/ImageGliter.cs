@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
@@ -21,8 +21,8 @@ public class ImageGliter : MonoBehaviour
         }
 
         Tweener tweener = null;
-        tweener = target.DOColor(color1, interval)
-            .SetLink(target.gameObject)
+        tweener = DOTween.To(() => target.color, value => target.color = value, color1, interval)
+            .SetTarget(target)
             .OnComplete(() =>
             {
                 _tweeners.Remove(tweener);
@@ -39,8 +39,8 @@ public class ImageGliter : MonoBehaviour
         }
 
         Tweener tweener = null;
-        tweener = textTarget.DOColor(color1, interval)
-            .SetLink(textTarget.gameObject)
+        tweener = DOTween.To(() => textTarget.color, value => textTarget.color = value, color1, interval)
+            .SetTarget(textTarget)
             .OnComplete(() =>
             {
                 _tweeners.Remove(tweener);

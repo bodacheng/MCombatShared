@@ -13,7 +13,8 @@ import sys
 
 shared_root = Path(sys.argv[1])
 projects = [Path(p) for p in sys.argv[2:]]
-manifest = json.loads((shared_root / "SourceSync" / "manifest.json").read_text())
+source_sync_root = shared_root / "SourceSync~"
+manifest = json.loads((source_sync_root / "manifest.json").read_text())
 
 def rel_posix(path, root):
     return path.relative_to(root).as_posix()
@@ -68,14 +69,14 @@ def sync_project(project):
     for root in manifest["roots"]:
         asset_root = root["path"]
         sync_tree(
-            shared_root / "SourceSync" / asset_root,
+            source_sync_root / asset_root,
             project / "Assets" / asset_root,
             root.get("exclude", ()),
             preserve_excluded=True,
         )
 
     for rel in manifest["files"]:
-        copy_file(shared_root / "SourceSync" / rel, project / "Assets" / rel)
+        copy_file(source_sync_root / rel, project / "Assets" / rel)
 
     for rel in manifest["obsolete"]:
         path = project / "Assets" / rel
@@ -83,10 +84,17 @@ def sync_project(project):
             remove_path(path)
 
     package_dir = project / "Packages" / "com.mcombat.shared"
-    sync_tree(shared_root, package_dir, {".git"}, preserve_excluded=True, skip_meta=False)
-    package_source_sync = package_dir / "SourceSync"
-    if package_source_sync.exists():
-        remove_path(package_source_sync)
+    if package_dir.resolve() != shared_root.resolve():
+        sync_tree(
+            shared_root,
+            package_dir,
+            {".git", "SourceSync~"},
+            preserve_excluded=True,
+            skip_meta=False,
+        )
+        legacy_source_sync = package_dir / "SourceSync"
+        if legacy_source_sync.exists():
+            remove_path(legacy_source_sync)
 
 for project in projects:
     sync_project(project)

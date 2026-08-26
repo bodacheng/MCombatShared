@@ -13,7 +13,8 @@ import sys
 
 shared_root = Path(sys.argv[1])
 projects = [Path(p) for p in sys.argv[2:]]
-manifest = json.loads((shared_root / "SourceSync" / "manifest.json").read_text())
+source_sync_root = shared_root / "SourceSync~"
+manifest = json.loads((source_sync_root / "manifest.json").read_text())
 errors = []
 
 def is_managed_file(path):
@@ -32,7 +33,7 @@ def managed_files(root):
 for root in manifest["roots"]:
     asset_root = root["path"]
     excluded = set(root.get("exclude", ()))
-    source_root = shared_root / "SourceSync" / asset_root
+    source_root = source_sync_root / asset_root
     source_files = managed_files(source_root)
 
     for rel in excluded:
@@ -60,7 +61,7 @@ for root in manifest["roots"]:
                 errors.append(f"{project}: synced {asset_root} file differs: {rel}")
 
 for rel in manifest["files"]:
-    src = shared_root / "SourceSync" / rel
+    src = source_sync_root / rel
     if not src.exists():
         errors.append(f"missing SourceSync file: {rel}")
         continue
@@ -85,7 +86,11 @@ print("SourceSync asset roots match both projects.")
 PY
 
 for project in "$mcombat_project" "$pocket_project"; do
-  diff -qr --exclude .git --exclude SourceSync "$shared_root" "$project/Packages/com.mcombat.shared" >/dev/null
+  package_dir="$project/Packages/com.mcombat.shared"
+  if [[ "$(cd "$package_dir" && pwd -P)" == "$(cd "$shared_root" && pwd -P)" ]]; then
+    continue
+  fi
+  diff -qr --exclude .git --exclude SourceSync --exclude 'SourceSync~' "$shared_root" "$package_dir" >/dev/null
 done
 
 echo "Embedded com.mcombat.shared packages match shared root."
