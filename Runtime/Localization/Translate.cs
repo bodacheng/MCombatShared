@@ -35,9 +35,7 @@ public static class Translate
         Func<SystemLanguage> getLanguage = null)
     {
 	    var key = "Config/" + CommonSetting.LanguageCodeFile;
-	    var csv = load != null
-	        ? await load(key)
-	        : await AddressablesAssetLoader.LoadT<TextAsset>(key);
+	    var csv = await LocalizationTableUtility.LoadCsv(key, load);
 	    languageProvider = getLanguage ?? (() => AppSetting.Value.Language);
 	    if (csv != null)
         {
@@ -56,30 +54,27 @@ public static class Translate
 	    return new string[2] { Get(key), Get(GameTipsRecordIds[key]) };
     }
 
-    static void Load(TextAsset csv)
+	static void Load(TextAsset csv)
 	{
-		rowList.Clear();
-		string[][] grid = CsvParser2.Parse(csv.text);
-		for(int i = 1 ; i < grid.Length ; i++)
-		{
-			if (grid[i].Length == 4)
+		LocalizationTableUtility.PopulateRows(
+			csv,
+			rowList,
+			values => new Row
 			{
-				var row = new Row
-				{
-					RECORD_ID = grid[i][0],
-					EN = grid[i][1],
-					JP = grid[i][2],
-					CH = grid[i][3]
-				};
+				RECORD_ID = values[0],
+				EN = values[1],
+				JP = values[2],
+				CH = values[3]
+			},
+			row =>
+			{
 				if (row.RECORD_ID.Contains("GameTip"))
 				{
 					var splits = row.RECORD_ID.Split("GameTip");
 					var num = splits[1];
 					DicAdd<string,string>.Add(GameTipsRecordIds, "TipTitle"+ num, row.RECORD_ID);
 				}
-				rowList.Add(row);
-			}
-		}
+			});
 		isLoaded = true;
 	}
 
@@ -100,26 +95,9 @@ public static class Translate
 		if (String.IsNullOrEmpty(languageCode))
 			return null;
 		var row = Find_RECORD_ID(languageCode);
-		string text = default;
-		if (row != null)
-		{
-			switch (languageProvider())
-			{
-				case SystemLanguage.English:
-					text = row.EN;
-					break;
-				case SystemLanguage.Japanese:
-					text = row.JP;
-					break;
-				case SystemLanguage.Chinese:
-					text = row.CH;
-					break;
-				default:
-					text = row.EN;
-					break;
-			}
-		}
-		return text;
+		return row == null
+			? null
+			: LocalizationTableUtility.SelectLanguage(languageProvider(), row.EN, row.JP, row.CH);
 	}
 
 	public static Row Find_RECORD_ID(string find)
