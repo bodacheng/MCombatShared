@@ -26,8 +26,10 @@ public partial class PlayFabReadClient
                     result.AccountInfo.AndroidDeviceInfo != null ? result.AccountInfo.AndroidDeviceInfo.AndroidDeviceId : null;
 #endif
 #if UNITY_STANDALONE_WIN
-                PlayerAccountInfo.Me.currentLinkedDeviceId = 
-                    result.AccountInfo.CustomIdInfo != null ? result.AccountInfo.CustomIdInfo.CustomId : null;
+                // Steam login binds a Steam identity, not a CustomID for this PC.
+                PlayerAccountInfo.Me.currentLinkedDeviceId = SteamManager.Initialized
+                    ? result.AccountInfo.SteamInfo?.SteamId
+                    : result.AccountInfo.CustomIdInfo?.CustomId;
 #endif
                 success.Invoke(true);
             },
