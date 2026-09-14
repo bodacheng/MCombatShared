@@ -29,7 +29,7 @@ class ChatGptFix : CameraMode
     
     public bool AutoRotateCamera
     {
-        get => PlayerPrefs.GetInt("AutoRotateCamera") == 1;
+        get => PlayerPrefs.GetInt("AutoRotateCamera", 1) == 1;
         set
         {
             PlayerPrefs.SetInt("AutoRotateCamera", value ? 1 : 0);
