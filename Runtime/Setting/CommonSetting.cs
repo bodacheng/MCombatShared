@@ -235,6 +235,9 @@ public class CommonSetting : ScriptableObject
         Admob_rewarded_iosKey = admob_rewarded_iosKey;
         Admob_rewarded_androidKey = admob_rewarded_androidKey;
 
+        Admob_banner_iosKey = admob_banner_iosKey;
+        Admob_banner_androidKey = admob_banner_androidKey;
+
         LobbyThemeAddressKey = lobbyThemeAddressKey;
         StartThemeAddressKey = startThemeAddressKey;
         FightThemeAddressKey1 = fightThemeAddressKey1;
