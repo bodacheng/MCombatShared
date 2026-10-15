@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -31,8 +32,9 @@ public static class AddressablesDependencyDownloader
         DownloadedByteCounts.Clear();
     }
 
-    public static async UniTask<long> GetDownloadSize(string label, Action<string> exceptionProcess = null)
+    public static async UniTask<long> GetDownloadSize(string label, Action<string> exceptionProcess = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrEmpty(label))
         {
             return 0;
@@ -42,7 +44,7 @@ public static class AddressablesDependencyDownloader
         try
         {
             handle = Addressables.GetDownloadSizeAsync(label);
-            await handle.Task;
+            await WaitForCompletion(handle, cancellationToken);
             if (handle.Status == AsyncOperationStatus.Succeeded)
             {
                 var result = handle.Result;
@@ -57,6 +59,10 @@ public static class AddressablesDependencyDownloader
             Debug.LogError(AddressablesResourcePolicy.DownloadSizeFailureMessage(label));
             exceptionProcess?.Invoke(label);
             return 0;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -73,14 +79,15 @@ public static class AddressablesDependencyDownloader
         }
     }
 
-    public static async UniTask<long> GetWholeDownloadSize(IEnumerable<string> labels, Action<string> exceptionProcess = null)
+    public static async UniTask<long> GetWholeDownloadSize(IEnumerable<string> labels, Action<string> exceptionProcess = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         Reset();
 
         long wholeSize = 0;
         foreach (var label in NormalizeLabels(labels))
         {
-            wholeSize += await GetDownloadSize(label, exceptionProcess);
+            wholeSize += await GetDownloadSize(label, exceptionProcess, cancellationToken);
         }
 
         return wholeSize;
@@ -89,8 +96,11 @@ public static class AddressablesDependencyDownloader
     public static async UniTask<bool> DownloadDependencies(
         string label,
         Action<string> progressUIRefresh = null,
-        string progressText = null)
+        string progressText = null,
+        CancellationToken cancellationToken = default,
+        TimeSpan? idleTimeout = null)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrEmpty(label))
         {
             return true;
@@ -101,13 +111,28 @@ public static class AddressablesDependencyDownloader
         {
             // Keep the handle valid until Status and DownloadStatus have been read.
             downloadHandle = Addressables.DownloadDependenciesAsync(label, false);
+            long lastBytes = -1;
+            double lastProgressAt = Time.realtimeSinceStartupAsDouble;
             while (!downloadHandle.IsDone)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                var bytes = downloadHandle.GetDownloadStatus().DownloadedBytes;
+                if (bytes != lastBytes)
+                {
+                    lastBytes = bytes;
+                    lastProgressAt = Time.realtimeSinceStartupAsDouble;
+                }
+                else if (idleTimeout.HasValue && idleTimeout.Value > TimeSpan.Zero &&
+                         Time.realtimeSinceStartupAsDouble - lastProgressAt >= idleTimeout.Value.TotalSeconds)
+                {
+                    throw new TimeoutException($"Resource download made no progress for {idleTimeout.Value.TotalSeconds} seconds: {label}");
+                }
                 UpdateDownloadedBytes(label, downloadHandle);
                 progressUIRefresh?.Invoke(progressText ?? label);
-                await UniTask.DelayFrame(0);
+                await UniTask.Yield(PlayerLoopTiming.Update);
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             if (downloadHandle.Status == AsyncOperationStatus.Succeeded)
             {
                 UpdateDownloadedBytes(label, downloadHandle);
@@ -118,6 +143,10 @@ public static class AddressablesDependencyDownloader
                 label,
                 downloadHandle.OperationException));
             return false;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -136,25 +165,57 @@ public static class AddressablesDependencyDownloader
     public static async UniTask<bool> DownloadRequiredDependencies(
         IEnumerable<string> labels,
         Action<string> progressUIRefresh = null,
-        string progressText = null)
+        string progressText = null,
+        CancellationToken cancellationToken = default,
+        TimeSpan? idleTimeout = null)
     {
-        var downloadTasks = new List<UniTask<bool>>();
-        foreach (var label in NormalizeLabels(labels))
+        cancellationToken.ThrowIfCancellationRequested();
+        using (var groupCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
         {
-            AddressablesResourcePolicy.EnsureDownloadedBytesLabel(DownloadedByteCounts, label);
-            if (RequiredDownloadSizes.ContainsKey(label))
+            async UniTask<bool> DownloadLabel(string label)
             {
-                downloadTasks.Add(DownloadDependencies(label, progressUIRefresh, progressText));
+                try
+                {
+                    var success = await DownloadDependencies(label, progressUIRefresh, progressText, groupCancellation.Token, idleTimeout);
+                    if (!success)
+                        groupCancellation.Cancel();
+                    return success;
+                }
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && groupCancellation.IsCancellationRequested)
+                {
+                    return false;
+                }
             }
-        }
 
-        if (downloadTasks.Count == 0)
+            var downloadTasks = new List<UniTask<bool>>();
+            foreach (var label in NormalizeLabels(labels))
+            {
+                AddressablesResourcePolicy.EnsureDownloadedBytesLabel(DownloadedByteCounts, label);
+                if (RequiredDownloadSizes.ContainsKey(label))
+                    downloadTasks.Add(DownloadLabel(label));
+            }
+
+            if (downloadTasks.Count == 0)
+                return true;
+
+            var results = await UniTask.WhenAll(downloadTasks);
+            cancellationToken.ThrowIfCancellationRequested();
+            return results.All(result => result);
+        }
+    }
+
+    // Poll instead of registering a completion callback: a canceled attempt never
+    // resumes when the underlying Addressables operation eventually finishes.
+    // The caller still owns and releases its handle on Unity's main thread.
+    public static async UniTask WaitForCompletion(AsyncOperationHandle handle, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        while (!handle.IsDone)
         {
-            return true;
+            cancellationToken.ThrowIfCancellationRequested();
+            await UniTask.Yield(PlayerLoopTiming.Update);
         }
-
-        var results = await UniTask.WhenAll(downloadTasks);
-        return results.All(result => result);
+        cancellationToken.ThrowIfCancellationRequested();
     }
 
     private static IEnumerable<string> NormalizeLabels(IEnumerable<string> labels)

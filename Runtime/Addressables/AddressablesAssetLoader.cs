@@ -136,25 +136,29 @@ public static class AddressablesAssetLoader
     public static UniTask<T> LoadT<T>(
         string prefabPathName,
         GameObject memoryReleaseTarget = null,
-        Func<string, UniTask> onFailure = null)
+        Func<string, UniTask> onFailure = null,
+        CancellationToken cancellationToken = default)
     {
         return LoadAsset(
             () => Addressables.LoadAssetAsync<T>(prefabPathName),
             prefabPathName,
             memoryReleaseTarget,
-            onFailure);
+            onFailure,
+            cancellationToken);
     }
 
     public static UniTask<T> LoadT<T>(
         IResourceLocation location,
         GameObject memoryReleaseTarget = null,
-        Func<string, UniTask> onFailure = null)
+        Func<string, UniTask> onFailure = null,
+        CancellationToken cancellationToken = default)
     {
         return LoadAsset(
             () => Addressables.LoadAssetAsync<T>(location),
             location?.PrimaryKey,
             memoryReleaseTarget,
-            onFailure);
+            onFailure,
+            cancellationToken);
     }
 
     public static void ReleaseRetainedHandles()
@@ -171,13 +175,15 @@ public static class AddressablesAssetLoader
         Func<AsyncOperationHandle<T>> startLoad,
         string key,
         GameObject memoryReleaseTarget,
-        Func<string, UniTask> onFailure)
+        Func<string, UniTask> onFailure,
+        CancellationToken cancellationToken)
     {
         AsyncOperationHandle<T> handle = default;
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             handle = startLoad();
-            await handle.Task;
+            await AddressablesDependencyDownloader.WaitForCompletion(handle, cancellationToken);
             if (handle.Status != AsyncOperationStatus.Succeeded)
             {
                 if (handle.IsValid())
@@ -199,6 +205,12 @@ public static class AddressablesAssetLoader
                 });
             }
             return handle.Result;
+        }
+        catch (OperationCanceledException)
+        {
+            if (handle.IsValid())
+                Addressables.Release(handle);
+            throw;
         }
         catch (Exception exception)
         {
