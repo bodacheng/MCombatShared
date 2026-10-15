@@ -3,6 +3,7 @@ using System.IO;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Json;
+using System;
 
 public class AppSetting
 {
@@ -114,25 +115,87 @@ public class AppSetting
         LocalJson.SaveToJsonFile_persistentDataPath(null, "AppSetting.json", json);
     }
 
+    private static AppSetting CreateDefault()
+    {
+        return new AppSetting
+        {
+            Language = (Application.systemLanguage == SystemLanguage.ChineseSimplified ||
+                        Application.systemLanguage == SystemLanguage.ChineseTraditional) ?
+                SystemLanguage.Chinese : Application.systemLanguage,
+            _bgmVolume = 0.5f, _effectsVolume = 0.5f,
+        };
+    }
+
+    private static bool TryLoadFile(string path, out AppSetting setting)
+    {
+        setting = null;
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            setting = JsonConvert.DeserializeObject<AppSetting>(File.ReadAllText(path));
+            if (setting == null)
+            {
+                throw new JsonSerializationException("AppSetting.json contains no settings.");
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Failed to load settings from {path}: {ex.Message}");
+            return false;
+        }
+    }
+
+    private static void PreserveCorruptFile(string path)
+    {
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        try
+        {
+            File.Move(path, path + ".corrupt-" + DateTime.UtcNow.Ticks);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Could not preserve damaged settings file: {ex.Message}");
+        }
+    }
+
     public static void Load()
     {
-        var wholePath = Application.persistentDataPath + "/AppSetting.json";
-        if (File.Exists(wholePath))
+        var wholePath = Path.Combine(Application.persistentDataPath, "AppSetting.json");
+        if (!TryLoadFile(wholePath, out var settings))
         {
-            var dataAsJson = File.ReadAllText(wholePath);
-            Value = JsonConvert.DeserializeObject<AppSetting>(dataAsJson);
-        }
-        else
-        {
-            Value = new AppSetting
+            var backupPath = wholePath + ".bak";
+            if (TryLoadFile(backupPath, out settings))
             {
-                Language = (Application.systemLanguage == SystemLanguage.ChineseSimplified ||
-                           Application.systemLanguage == SystemLanguage.ChineseTraditional) ?
-                    SystemLanguage.Chinese : Application.systemLanguage,
-                _bgmVolume = 0.5f, _effectsVolume = 0.5f,
-            };
-            Save();
+                PreserveCorruptFile(wholePath);
+                try
+                {
+                    File.Copy(backupPath, wholePath, true);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"Could not restore settings backup: {ex.Message}");
+                }
+            }
+            else
+            {
+                PreserveCorruptFile(wholePath);
+                settings = CreateDefault();
+                Value = settings;
+                Save();
+            }
         }
+
+        Value = settings;
 
         BOButton.SetPlaySeMethod(
             (x) =>

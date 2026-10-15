@@ -30,18 +30,55 @@ namespace Json
             
             Debug.Log("尝试建立本地文件 : "+wholePath);
             
+            string temporaryPath = wholePath + ".tmp";
             try
             {
-                if (!File.Exists(wholePath))
+                // Keep the previous complete file until the replacement has been written.
+                File.WriteAllText(temporaryPath, json, System.Text.Encoding.UTF8);
+                if (File.Exists(wholePath))
                 {
-                    File.Create(wholePath).Close();
+                    try
+                    {
+                        File.Replace(temporaryPath, wholePath, wholePath + ".bak");
+                    }
+                    catch (NotSupportedException)
+                    {
+                        // Some Unity targets do not implement File.Replace. Keep a recoverable
+                        // old file until the new one is in place on those targets.
+                        var backupPath = wholePath + ".bak";
+                        if (File.Exists(backupPath))
+                        {
+                            File.Delete(backupPath);
+                        }
+                        File.Move(wholePath, backupPath);
+                        try
+                        {
+                            File.Move(temporaryPath, wholePath);
+                        }
+                        catch
+                        {
+                            File.Move(backupPath, wholePath);
+                            throw;
+                        }
+                    }
                 }
-                File.WriteAllText(wholePath, json, System.Text.Encoding.UTF8);
+                else
+                {
+                    File.Move(temporaryPath, wholePath);
+                }
                 Debug.Log(wholePath);
             }
             catch (Exception e)
             {
-                Debug.Log(e);
+                Debug.LogException(e);
+            }
+            finally
+            {
+                if (File.Exists(temporaryPath))
+                {
+                    try { File.Delete(temporaryPath); }
+                    catch (Exception e) { Debug.LogWarning(e); }
+                }
             }
         }
         
